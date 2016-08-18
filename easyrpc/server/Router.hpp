@@ -122,17 +122,18 @@ private:
     }
 
 private:
+    // 遍历function的实参类型，将TokenParser解析出来的参数转换为实参并添加到std::tuple中.
     template<typename Function, std::size_t I = 0, std::size_t N = FunctionTraits<Function>::arity>
     class Invoker
     {
     public:
         template<typename Args>
-        static void apply(const Function& func, TokenParser& parser, const Args& args, std::string& result)
+        static void apply(const Function& func, const Args& args, TokenParser& parser, std::string& result)
         {
             using ArgType = typename FunctionTraits<Function>::template args<I>::type;
             try
             {
-                Invoker<Function, I + 1, N>::apply(func, parser, std::tuple_cat(args, std::make_tuple(parser.get<ArgType>())), result);
+                Invoker<Function, I + 1, N>::apply(func, std::tuple_cat(args, std::make_tuple(parser.get<ArgType>())), parser, result);
             }
             catch (std::exception& e)
             {
@@ -141,18 +142,17 @@ private:
         }
 
         template<typename Args, typename Self>
-        static void applyMember(const Function& func, Self* self, TokenParser& parser, const Args& args, std::string& result)
+        static void applyMember(const Function& func, Self* self, const Args& args, TokenParser& parser, std::string& result)
         {
             using ArgType = typename FunctionTraits<Function>::template args<I>::type;
             try
             {
-                Invoker<Function, I + 1, N>::applyMember(func, self, parser, std::tuple_cat(args, std::make_tuple(parser.get<ArgType>())), result);
+                Invoker<Function, I + 1, N>::applyMember(func, self, std::tuple_cat(args, std::make_tuple(parser.get<ArgType>())), parser, result);
             }
             catch (std::exception& e)
             {
                 std::cout << "Exception: " << e.what() << std::endl;
             }
-
         }
     }; 
 
@@ -161,13 +161,14 @@ private:
     {
     public:
         template<typename Args>
-        static void apply(const Function& func, TokenParser&, const Args& args, std::string& result)
+        static void apply(const Function& func, const Args& args, TokenParser&, std::string& result)
         {
+            // 参数列表已经准备好，可以调用function了.
             call(func, args, result);
         }
 
         template<typename Args, typename Self>
-        static void applyMember(const Function& func, Self* self, TokenParser&, const Args& args, std::string& result)
+        static void applyMember(const Function& func, Self* self, const Args& args, TokenParser&, std::string& result)
         {
             callMember(func, self, args, result);
         }
@@ -177,33 +178,20 @@ private:
     template<typename Function>
     void bindNonMemberFunc(const std::string& funcName, const Function& func)
     {
-#if 0
-        m_invokerMap.emplace(funcName, { std::bind(&Invoker<Function>::template apply<std::tuple<>>, func, 
-                                                   std::placeholders::_1, std::placeholders::_2, 
-                                                   std::tuple<>()), FunctionTraits<Function>::arity }); 
-#endif
-        m_invokerMap[funcName] = { std::bind(&Invoker<Function>::template apply<std::tuple<>>, func, 
-                                             std::placeholders::_1, std::placeholders::_2, 
-                                             std::tuple<>()), FunctionTraits<Function>::arity };
+        m_invokerMap[funcName] = { std::bind(&Invoker<Function>::template apply<std::tuple<>>, func, std::tuple<>(), 
+                                             std::placeholders::_1, std::placeholders::_2), FunctionTraits<Function>::arity };
     }
 
     template<typename Function, typename Self>
     void bindMemberFunc(const std::string& funcName, const Function& func, Self* self)
     {
-#if 0
-        m_invokerMap.emplace(funcName, { std::bind(&Invoker<Function>::template applyMember<std::tuple<>, Self>, func, self,
-                                                   std::placeholders::_1, std::placeholders::_2,
-                                                   std::tuple<>()), FunctionTraits<Function>::arity });
-#endif
-        m_invokerMap[funcName] = { std::bind(&Invoker<Function>::template applyMember<std::tuple<>, Self>, func, self,
-                                             std::placeholders::_1, std::placeholders::_2,
-                                             std::tuple<>()), FunctionTraits<Function>::arity };
+        m_invokerMap[funcName] = { std::bind(&Invoker<Function>::template applyMember<std::tuple<>, Self>, func, self, std::tuple<>(), 
+                                             std::placeholders::_1, std::placeholders::_2), FunctionTraits<Function>::arity };
     }
 
 private:
     ThreadPool m_threadPool;
-    /* std::unordered_map<std::string, InvokerFunction> m_invokerMap; */
-    std::map<std::string, InvokerFunction> m_invokerMap;
+    std::unordered_map<std::string, InvokerFunction> m_invokerMap;
 };
 
 }
