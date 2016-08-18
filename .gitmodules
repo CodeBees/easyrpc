@@ -1,0 +1,3 @@
+[submodule "easypack"]
+	path = easypack
+	url = https://github.com/chxuan/easypack.git
