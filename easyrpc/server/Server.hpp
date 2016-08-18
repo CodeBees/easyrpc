@@ -1,6 +1,7 @@
 #ifndef _SERVER_H
 #define _SERVER_H
 
+#include "IoServicePool.hpp"
 #include "Router.hpp"
 
 namespace easyrpc
@@ -34,6 +35,9 @@ public:
     {
         Router::instance().bind(funcName, func, self); 
     }
+
+private:
+    IoServicePool m_ioServicePool;
 };
 
 }
