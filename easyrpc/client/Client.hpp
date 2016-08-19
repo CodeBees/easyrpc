@@ -6,6 +6,7 @@
 #include <array>
 #include <thread>
 #include <memory>
+#include <iostream>
 #include <boost/asio.hpp>
 #include "base/Header.hpp"
 #include "Protocol.hpp"
@@ -39,7 +40,6 @@ public:
 
     void disconnect()
     {
-        m_socket.shutdown(boost::asio::socket_base::shutdown_both); 
         m_socket.close();
     }
 
@@ -47,9 +47,12 @@ public:
     {
         disconnect();
         m_ioService.stop();
-        if (m_thread->joinable())
+        if (m_thread != nullptr)
         {
-            m_thread->join();
+            if (m_thread->joinable())
+            {
+                m_thread->join();
+            }
         }
     }
 
@@ -108,7 +111,6 @@ private:
             return false;
         }
 
-        /* ResponseHeader head = *(ResponseHeader*)m_head; */
         ResponseHeader head;
         memcpy(&head, m_head, sizeof(m_head));
         if (head.bodyLen <= 0 || head.bodyLen > MaxBufferLenght)

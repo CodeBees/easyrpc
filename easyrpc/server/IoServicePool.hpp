@@ -47,14 +47,20 @@ public:
     {
         for (auto& iter : m_ioServiceVec)
         {
-            iter->stop();
+            if (iter != nullptr)
+            {
+                iter->stop();
+            }
         }
 
         for (auto& iter : m_threadVec)
         {
-            if (iter->joinable())
+            if (iter != nullptr)
             {
-                iter->join();
+                if (iter->joinable())
+                {
+                    iter->join();
+                }
             }
         }
     }
