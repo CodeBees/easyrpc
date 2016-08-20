@@ -96,9 +96,12 @@ private:
 
         for (auto& iter : m_threadVec)
         {
-            if (iter->joinable())
+            if (iter != nullptr)
             {
-                iter->join();
+                if (iter->joinable())
+                {
+                    iter->join();
+                }
             }
         }
         m_threadVec.clear();

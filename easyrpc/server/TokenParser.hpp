@@ -6,6 +6,14 @@
 namespace easyrpc
 {
 
+template<typename T>
+std::string pack(T& t)
+{
+    easypack::Pack p;
+    p.pack(t);
+    return p.getString();
+}
+
 class TokenParser
 {
 public:

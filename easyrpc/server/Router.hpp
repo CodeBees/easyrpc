@@ -20,11 +20,17 @@ public:
     InvokerFunction() = default;
     InvokerFunction(const Function& func, std::size_t paramSize) : m_func(func), m_paramSize(paramSize) {}
 
-    void operator()(const std::string& text)
+    /* void operator()(const std::string& body, std::shared_ptr<Connection> conn) */
+    template<typename T>
+    void operator()(const std::string& body, T conn)
     {
-        TokenParser parser(text);
+        TokenParser parser(body);
         std::string result;
         m_func(parser, result);
+        if (!conn->write(result))
+        {
+            std::cout << "Write failed" << std::endl;
+        }
     }
 
     std::size_t paramSize() const
@@ -43,6 +49,10 @@ public:
     Router() = default;
     Router(const Router&) = delete;
     Router& operator=(const Router&) = delete;
+    ~Router()
+    {
+        stop();
+    }
 
     static Router& instance()
     {
@@ -55,27 +65,34 @@ public:
         m_threadPool.initThreadNum(size);
     }
 
-    template<typename Function>
-    void bind(const std::string& funcName, const Function& func)
+    void stop()
     {
-        bindNonMemberFunc(funcName, func);
+        m_threadPool.stop();
+    }
+
+    template<typename Function>
+    void bind(const std::string& protocol, const Function& func)
+    {
+        bindNonMemberFunc(protocol, func);
     }
 
     template<typename Function, typename Self>
-    void bind(const std::string& funcName, const Function& func, Self* self)
+    void bind(const std::string& protocol, const Function& func, Self* self)
     {
-        bindMemberFunc(funcName, func, self); 
+        bindMemberFunc(protocol, func, self); 
     }
 
-    void route(const std::string& funcName, const std::string& text)
+    template<typename T>
+    void route(const std::string& protocol, const std::string& body, T conn)
+    /* void route(const std::string& protocol, const std::string& body, std::shared_ptr<Connection> conn) */
     {
-        auto iter = m_invokerMap.find(funcName);
+        auto iter = m_invokerMap.find(protocol);
         if (iter == m_invokerMap.end())
         {
             return;
         }
 
-        m_threadPool.addTask(iter->second, text);
+        m_threadPool.addTask(iter->second, body, conn);
     }
 
 private:
@@ -91,7 +108,8 @@ private:
     call(const Function& func, const std::tuple<Args...>& tp, std::string& result)
     {
         auto ret = callImpl(func, std::make_index_sequence<sizeof...(Args)>{}, tp);
-        // result = ret;
+        // 将ret序列化放入result
+        result = pack(ret);
     }
 
     template<typename Function, std::size_t... I, typename... Args>
@@ -112,7 +130,8 @@ private:
     callMember(const Function& func, Self* self, const std::tuple<Args...>& tp, std::string& result)
     {
         auto ret = callMemberImpl(func, self, std::make_index_sequence<sizeof...(Args)>{}, tp);
-        // result = ret;
+        // 将ret序列化放入result
+        result = pack(ret);
     }
 
     template<typename Function, typename Self, std::size_t... I, typename... Args>
@@ -163,29 +182,43 @@ private:
         template<typename Args>
         static void apply(const Function& func, const Args& args, TokenParser&, std::string& result)
         {
-            // 参数列表已经准备好，可以调用function了.
-            call(func, args, result);
+            try
+            {
+                // 参数列表已经准备好，可以调用function了.
+                call(func, args, result);
+            }
+            catch (std::exception& e)
+            {
+                std::cout << "Exception: " << e.what() << std::endl;
+            }
         }
 
         template<typename Args, typename Self>
         static void applyMember(const Function& func, Self* self, const Args& args, TokenParser&, std::string& result)
         {
-            callMember(func, self, args, result);
+            try
+            {
+                callMember(func, self, args, result);
+            }  
+            catch (std::exception& e)
+            {
+                std::cout << "Exception: " << e.what() << std::endl;
+            }
         }
     };
 
 private:
     template<typename Function>
-    void bindNonMemberFunc(const std::string& funcName, const Function& func)
+    void bindNonMemberFunc(const std::string& protocol, const Function& func)
     {
-        m_invokerMap[funcName] = { std::bind(&Invoker<Function>::template apply<std::tuple<>>, func, std::tuple<>(), 
+        m_invokerMap[protocol] = { std::bind(&Invoker<Function>::template apply<std::tuple<>>, func, std::tuple<>(), 
                                              std::placeholders::_1, std::placeholders::_2), FunctionTraits<Function>::arity };
     }
 
     template<typename Function, typename Self>
-    void bindMemberFunc(const std::string& funcName, const Function& func, Self* self)
+    void bindMemberFunc(const std::string& protocol, const Function& func, Self* self)
     {
-        m_invokerMap[funcName] = { std::bind(&Invoker<Function>::template applyMember<std::tuple<>, Self>, func, self, std::tuple<>(), 
+        m_invokerMap[protocol] = { std::bind(&Invoker<Function>::template applyMember<std::tuple<>, Self>, func, self, std::tuple<>(), 
                                              std::placeholders::_1, std::placeholders::_2), FunctionTraits<Function>::arity };
     }
 
