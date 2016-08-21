@@ -20,7 +20,6 @@ public:
     InvokerFunction() = default;
     InvokerFunction(const Function& func, std::size_t paramSize) : m_func(func), m_paramSize(paramSize) {}
 
-    /* void operator()(const std::string& body, std::shared_ptr<Connection> conn) */
     template<typename T>
     void operator()(const std::string& body, T conn)
     {
@@ -90,7 +89,6 @@ public:
 
     template<typename T>
     void route(const std::string& protocol, const std::string& body, T conn)
-    /* void route(const std::string& protocol, const std::string& body, std::shared_ptr<Connection> conn) */
     {
         auto iter = m_invokerMap.find(protocol);
         if (iter == m_invokerMap.end())

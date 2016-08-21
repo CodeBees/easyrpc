@@ -21,21 +21,12 @@ public:
     using ReturnType = typename FunctionTraits<Return(Args...)>::returnType;
     explicit ProtocolDefine(std::string name) : m_name(std::move(name)) {}
 
-    std::string pack(Args&&... args) const
+    std::string pack(Args... args) const
     {
         easypack::Pack p;
         p.pack(std::forward<Args>(args)...);
         return p.getString();
     }
-
-#if 0
-    std::string pack(Args&... args) const
-    {
-        easypack::Pack p;
-        p.pack(std::forward<Args>(args)...);
-        return p.getString();
-    }
-#endif
 
     ReturnType unpack(const std::string& text) const
     {

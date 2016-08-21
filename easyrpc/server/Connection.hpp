@@ -47,7 +47,6 @@ public:
 
         boost::system::error_code ec;
         boost::asio::write(m_socket, buffer, ec);
-        std::cout << "write success" << std::endl;
         return ec ? false : true;
     }
 
@@ -85,17 +84,6 @@ private:
                 cancelTimer();
                 close();
             }
-
-#if 0
-            if (len == 0)
-            {
-                readHead();
-            }
-            else
-            {
-                cancelTimer();
-            }
-#endif
         });
     }
 
@@ -144,7 +132,6 @@ private:
                 return;
             }
                               
-            /* readHead(); */
             Router::instance().route(protocol, std::string(&m_body[0], m_body.size()), self);
         });
     }

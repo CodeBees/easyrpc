@@ -48,18 +48,6 @@ public:
     }
 
     template<typename Protocol, typename... Args>
-    typename std::enable_if<std::is_void<typename Protocol::ReturnType>::value>::type 
-    call(const Protocol& protocol, Args&&... args)
-    {
-        connect();
-        if (!write(protocol.name(), protocol.pack(std::forward<Args>(args)...)))
-        {
-            throw std::runtime_error("Write failed");
-        }
-        disconnect();
-    }
-
-    template<typename Protocol, typename... Args>
     typename std::enable_if<!std::is_void<typename Protocol::ReturnType>::value, typename Protocol::ReturnType>::type
     call(const Protocol& protocol, Args&&... args)
     {
@@ -79,15 +67,8 @@ public:
     }
 
 private:
-    /* void connect(const std::string& ip, unsigned short port) */
     void connect()
     {
-#if 0
-        boost::asio::ip::tcp::resolver resolver(m_ioService);
-        boost::asio::ip::tcp::resolver::query query(boost::asio::ip::tcp::v4(), ip, std::to_string(port));
-        boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
-        boost::asio::connect(m_socket, iter);
-#endif
         boost::system::error_code ec;
         m_socket.connect(m_endpoint, ec);
         if (ec)
@@ -108,7 +89,6 @@ private:
         {
             return false;
         }
-        std::cout << __LINE__ << std::endl;
 
         std::vector<boost::asio::const_buffer> buffer;
         buffer.emplace_back(boost::asio::buffer(&head, sizeof(RequestHeader)));
@@ -117,21 +97,17 @@ private:
 
         boost::system::error_code ec;
         boost::asio::write(m_socket, buffer, ec);
-        std::cout << __LINE__ << std::endl;
         return ec ? false : true;
     }
 
     bool read()
     {
-        std::cout << __LINE__ << std::endl;
         boost::system::error_code ec;
         boost::asio::read(m_socket, boost::asio::buffer(m_head), ec);
         if (ec)
         {
-            std::cout << __LINE__ << std::endl;
             return false;
         }
-        std::cout << __LINE__ << std::endl;
 
         ResponseHeader head;
         memcpy(&head, m_head, sizeof(m_head));
@@ -140,7 +116,6 @@ private:
             return false;
         }
 
-        std::cout << __LINE__ << std::endl;
         m_body.clear();
         m_body.resize(head.bodyLen);
         boost::asio::read(m_socket, boost::asio::buffer(m_body), ec); 

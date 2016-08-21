@@ -95,6 +95,14 @@ flags = [
 './',
 '-isystem',
 './easyrpc',
+'-isystem',
+'./test',
+'-isystem',
+'./test/server',
+'-isystem',
+'./test/client',
+'-isystem',
+'./test/protocol',
 
 #'-isystem',
 # This path will only work on OS X, but extra paths that don't exist are not

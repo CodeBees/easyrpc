@@ -8,6 +8,7 @@ aux_source_directory(. DIR_SRCS)
 
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/../..)
+include_directories(${PROJECT_SOURCE_DIR}/../protocol)
 include_directories(${PROJECT_SOURCE_DIR}/../../easyrpc)
 include_directories(${PROJECT_SOURCE_DIR}/../../easypack)
 include_directories($ENV{BOOST_INCLUDE_PATH})

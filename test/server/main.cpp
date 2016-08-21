@@ -2,44 +2,55 @@
 #include <string>
 #include <thread>
 #include "easyrpc/EasyRpc.hpp"
+#include "ProtocolDefine.hpp"
 
 int add(int a, int b)
 {
-    std::cout << "add thread id: " << std::this_thread::get_id() << std::endl;
-    std::cout << "add: " << a + b << std::endl;
     return a + b;
 }
 
-void print(int a)
+bool print(const std::string& str, int i)
 {
-    std::cout << a << std::endl;
+    std::cout << str << ", " << i << std::endl;
+    return true;
 }
 
-class Test
+PersonInfoRes queryPersonInfo(const PersonInfoReq& req)
+{
+    std::cout << "cardId: " << req.cardId << std::endl;
+    std::cout << "name: " << req.name << std::endl;
+    PersonInfoRes res { req.cardId, req.name, 20, "汉" };
+    return res;
+}
+
+class Utils
 {
 public:
-    int add2(int a, int b)
+    std::string toUpper(const std::string& str)
     {
-        std::cout << "add2 thread id: " << std::this_thread::get_id() << std::endl;
-        std::cout << "add2: " << a + b << std::endl;
-        return a + b;
+        std::string temp;
+        for (std::size_t i = 0; i < str.size(); ++i)
+        {
+            temp.push_back(std::toupper(str[i]));
+        }
+        return temp;
     }
-
 };
 
 int main()
 {
     std::cout << "main thread id: " << std::this_thread::get_id() << std::endl;
-    /* Test t; */
+    Utils u;
 
     std::size_t num = std::thread::hardware_concurrency();
     easyrpc::Server server("127.0.0.1", 8888, num);
     try
     {
-        server.setThreadPoolSize(2);
-        /* server.bind("add", &add); */
-        /* server.bind("add2", &Test::add2, &t); */
+        server.setThreadPoolSize(10);
+        server.bind("add", &add);
+        server.bind("toUpper", &Utils::toUpper, &u);
         server.bind("print", &print);
+        server.bind("queryPersonInfo", &queryPersonInfo);
         server.run();
     }
     catch (std::exception& e)
