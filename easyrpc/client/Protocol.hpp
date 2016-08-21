@@ -6,7 +6,7 @@
 #include "base/FunctionTraits.hpp"
 #include "easypack/EasyPack.hpp"
 
-#define EASYRPC_RPC_PROTOCOL_DEFINE(funcName, funcType) const static easyrpc::ProtocolDefine<funcType> handler{ #funcName }
+#define EASYRPC_RPC_PROTOCOL_DEFINE(handler, funcType) const static easyrpc::ProtocolDefine<funcType> handler { #handler }
 
 namespace easyrpc
 {
@@ -19,16 +19,16 @@ class ProtocolDefine<Return(Args...)>
 {
 public:
     using ReturnType = typename FunctionTraits<Return(Args...)>::returnType;
-    explicit ProtocolDefine(std::string funcName) : m_funcName(std::move(funcName)) {}
+    explicit ProtocolDefine(std::string name) : m_name(std::move(name)) {}
 
-    std::string pack(Args&&... args)
+    std::string pack(Args&&... args) const
     {
         easypack::Pack p;
         p.pack(std::forward<Args>(args)...);
         return p.getString();
     }
 
-    ReturnType unpack(const std::string& text)
+    ReturnType unpack(const std::string& text) const
     {
         easypack::UnPack up(text);
         ReturnType ret;
@@ -36,13 +36,13 @@ public:
         return ret;
     }
 
-    const std::string& funcName()
+    const std::string& name() const
     {
-        return m_funcName;
+        return m_name;
     }
     
 private:
-    std::string m_funcName;
+    std::string m_name;
 };
 
 }

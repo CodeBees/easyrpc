@@ -1,6 +1,7 @@
 #ifndef _CLIENT_H
 #define _CLIENT_H
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include <array>
@@ -60,7 +61,7 @@ public:
     typename std::enable_if<std::is_void<typename Protocol::ReturnType>::value>::type 
     call(const Protocol& protocol, Args&&... args)
     {
-        if (!write(protocol.funcName(), protocol.pack(std::forward<Args>(args)...)))
+        if (!write(protocol.name(), protocol.pack(std::forward<Args>(args)...)))
         {
             throw std::runtime_error("Write failed");
         }
@@ -70,7 +71,7 @@ public:
     typename std::enable_if<!std::is_void<typename Protocol::ReturnType>::value, typename Protocol::ReturnType>::type
     call(const Protocol& protocol, Args&&... args)
     {
-        if (!write(protocol.funcName(), protocol.pack(std::forward<Args>(args)...)))
+        if (!write(protocol.name(), protocol.pack(std::forward<Args>(args)...)))
         {
             throw std::runtime_error("Write failed");
         }
@@ -80,7 +81,7 @@ public:
             throw std::runtime_error("Read failed");
         }
 
-        return protocol.unpack(m_body.data());
+        return protocol.unpack(std::string(&m_body[0], m_body.size()));
     }
 
 private:
@@ -91,6 +92,7 @@ private:
         {
             return false;
         }
+        std::cout << __LINE__ << std::endl;
 
         std::vector<boost::asio::const_buffer> buffer;
         buffer.emplace_back(boost::asio::buffer(&head, sizeof(RequestHeader)));
@@ -99,17 +101,21 @@ private:
 
         boost::system::error_code ec;
         boost::asio::write(m_socket, buffer, ec);
+        std::cout << __LINE__ << std::endl;
         return ec ? false : true;
     }
 
     bool read()
     {
+        std::cout << __LINE__ << std::endl;
         boost::system::error_code ec;
         boost::asio::read(m_socket, boost::asio::buffer(m_head), ec);
         if (ec)
         {
+            std::cout << __LINE__ << std::endl;
             return false;
         }
+        std::cout << __LINE__ << std::endl;
 
         ResponseHeader head;
         memcpy(&head, m_head, sizeof(m_head));
@@ -118,7 +124,10 @@ private:
             return false;
         }
 
-        boost::asio::read(m_socket, boost::asio::buffer(m_body.data(), head.bodyLen), ec); 
+        std::cout << __LINE__ << std::endl;
+        m_body.clear();
+        m_body.resize(head.bodyLen);
+        boost::asio::read(m_socket, boost::asio::buffer(m_body), ec); 
         return ec ? false : true;
     }
 
@@ -126,8 +135,8 @@ private:
     boost::asio::io_service m_ioService;
     boost::asio::ip::tcp::socket m_socket;
     std::unique_ptr<std::thread> m_thread;
-    char m_head[RequestHeaderLenght];
-    std::array<char, MaxBufferLenght> m_body;
+    char m_head[ResponseHeaderLenght];
+    std::vector<char> m_body;
 };
 
 }

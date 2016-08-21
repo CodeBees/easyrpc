@@ -58,6 +58,7 @@ private:
         /* boost::asio::ip::tcp::endpoint ep(boost::asio::ip::tcp::v4(), m_port); */
         boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address_v4::from_string(m_ip), m_port);
         m_acceptor.open(ep.protocol());
+        m_acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
         m_acceptor.bind(ep);
         m_acceptor.listen();
     }

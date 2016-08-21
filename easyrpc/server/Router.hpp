@@ -24,12 +24,15 @@ public:
     template<typename T>
     void operator()(const std::string& body, T conn)
     {
-        TokenParser parser(body);
-        std::string result;
-        m_func(parser, result);
-        if (!conn->write(result))
+        if (!body.empty())
         {
-            std::cout << "Write failed" << std::endl;
+            TokenParser parser(body);
+            std::string result;
+            m_func(parser, result);
+            if (!conn->write(result))
+            {
+                std::cout << "Write failed" << std::endl;
+            }
         }
     }
 

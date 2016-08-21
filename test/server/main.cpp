@@ -27,7 +27,8 @@ int main()
     Test t;
 
     std::size_t num = std::thread::hardware_concurrency();
-    easyrpc::Server server("127.0.0.1", 8888, num);
+    /* easyrpc::Server server("127.0.0.1", 8888, num); */
+    easyrpc::Server server("192.168.244.133", 1234, num);
     try
     {
         server.setThreadPoolSize(2);

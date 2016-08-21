@@ -47,6 +47,7 @@ public:
 
         boost::system::error_code ec;
         boost::asio::write(m_socket, buffer, ec);
+        std::cout << "write success" << std::endl;
         return ec ? false : true;
     }
 
@@ -65,8 +66,9 @@ private:
 
             if (ec)
             {
-                std::cout << "Error: " << ec.message() << std::endl;
+                std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
                 cancelTimer();
+                close();
                 return;
             }
 
@@ -78,17 +80,22 @@ private:
                 readProtocol(head);
                 return;
             }
+            else
+            {
+                cancelTimer();
+                close();
+            }
 
+#if 0
             if (len == 0)
             {
                 readHead();
             }
             else
             {
-                std::cout << "Invaild protocol len: " << head.protocolLen << std::endl;
-                std::cout << "Invaild body len: " << head.bodyLen << std::endl;
                 cancelTimer();
             }
+#endif
         });
     }
 
@@ -107,8 +114,9 @@ private:
 
             if (ec)
             {
-                std::cout << "Error: " << ec.message() << std::endl;
+                std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
                 cancelTimer();
+                close();
                 return;
             }
 
@@ -131,12 +139,13 @@ private:
 
             if (ec)
             {
-                std::cout << "Error: " << ec.message() << std::endl;
+                std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
+                close();
                 return;
             }
                               
-            Router::instance().route(protocol, std::string(&m_body[0], m_body.size()), self);
             readHead();
+            Router::instance().route(protocol, std::string(&m_body[0], m_body.size()), self);
         });
     }
 
@@ -171,7 +180,7 @@ private:
 
             if (ec)
             {
-                std::cout << "Error: " << ec.message() << std::endl;
+                std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
                 return;
             }
 
