@@ -65,12 +65,12 @@ private:
 
     void accept()
     {
-        m_conn = std::make_shared<Connection>(m_ioServicePool.getIoService(), m_timeoutMilli);
-        m_acceptor.async_accept(m_conn->socket(), [this](boost::system::error_code ec)
+        std::shared_ptr<Connection> conn = std::make_shared<Connection>(m_ioServicePool.getIoService(), m_timeoutMilli);
+        m_acceptor.async_accept(conn->socket(), [this, conn](boost::system::error_code ec)
         {
             if (!ec)
             {
-                m_conn->start();
+                conn->start();
             }
             accept();
         });
@@ -79,7 +79,7 @@ private:
 private:
     IoServicePool m_ioServicePool;
     boost::asio::ip::tcp::acceptor m_acceptor;
-    std::shared_ptr<Connection> m_conn;
+    /* std::shared_ptr<Connection> m_conn; */
     std::string m_ip = "127.0.0.1";
     unsigned short m_port = 8888;
     std::size_t m_timeoutMilli = 0;

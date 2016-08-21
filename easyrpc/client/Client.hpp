@@ -18,9 +18,12 @@ namespace easyrpc
 class Client
 {
 public:
+    Client() = default;
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;
-    Client() : m_socket(m_ioService) {}
+
+    Client(const std::string& ip, unsigned short port) 
+        : m_socket(m_ioService), m_endpoint(boost::asio::ip::address::from_string(ip), port) {}
     ~Client()
     {
         stop();
@@ -29,19 +32,6 @@ public:
     void run()
     {
         m_thread = std::make_unique<std::thread>([this]{ m_ioService.run(); });
-    }
-
-    void connect(const std::string& ip, unsigned short port)
-    {
-        boost::asio::ip::tcp::resolver resolver(m_ioService);
-        boost::asio::ip::tcp::resolver::query query(boost::asio::ip::tcp::v4(), ip, std::to_string(port));
-        boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
-        boost::asio::connect(m_socket, iter);
-    }
-
-    void disconnect()
-    {
-        m_socket.close();
     }
 
     void stop()
@@ -61,16 +51,19 @@ public:
     typename std::enable_if<std::is_void<typename Protocol::ReturnType>::value>::type 
     call(const Protocol& protocol, Args&&... args)
     {
+        connect();
         if (!write(protocol.name(), protocol.pack(std::forward<Args>(args)...)))
         {
             throw std::runtime_error("Write failed");
         }
+        disconnect();
     }
 
     template<typename Protocol, typename... Args>
     typename std::enable_if<!std::is_void<typename Protocol::ReturnType>::value, typename Protocol::ReturnType>::type
     call(const Protocol& protocol, Args&&... args)
     {
+        connect();
         if (!write(protocol.name(), protocol.pack(std::forward<Args>(args)...)))
         {
             throw std::runtime_error("Write failed");
@@ -81,10 +74,33 @@ public:
             throw std::runtime_error("Read failed");
         }
 
+        disconnect();
         return protocol.unpack(std::string(&m_body[0], m_body.size()));
     }
 
 private:
+    /* void connect(const std::string& ip, unsigned short port) */
+    void connect()
+    {
+#if 0
+        boost::asio::ip::tcp::resolver resolver(m_ioService);
+        boost::asio::ip::tcp::resolver::query query(boost::asio::ip::tcp::v4(), ip, std::to_string(port));
+        boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
+        boost::asio::connect(m_socket, iter);
+#endif
+        boost::system::error_code ec;
+        m_socket.connect(m_endpoint, ec);
+        if (ec)
+        {
+            throw std::runtime_error(ec.message()); 
+        }
+    }
+
+    void disconnect()
+    {
+        m_socket.close();
+    }
+
     bool write(const std::string& protocol, const std::string& body)
     {
         RequestHeader head { static_cast<unsigned int>(protocol.size()), static_cast<unsigned int>(body.size()) };
@@ -134,6 +150,7 @@ private:
 private:
     boost::asio::io_service m_ioService;
     boost::asio::ip::tcp::socket m_socket;
+    boost::asio::ip::tcp::endpoint m_endpoint;
     std::unique_ptr<std::thread> m_thread;
     char m_head[ResponseHeaderLenght];
     std::vector<char> m_body;

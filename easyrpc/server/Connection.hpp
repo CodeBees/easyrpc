@@ -144,7 +144,7 @@ private:
                 return;
             }
                               
-            readHead();
+            /* readHead(); */
             Router::instance().route(protocol, std::string(&m_body[0], m_body.size()), self);
         });
     }

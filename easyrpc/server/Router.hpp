@@ -29,9 +29,12 @@ public:
             TokenParser parser(body);
             std::string result;
             m_func(parser, result);
-            if (!conn->write(result))
+            if (!result.empty())
             {
-                std::cout << "Write failed" << std::endl;
+                if (!conn->write(result))
+                {
+                    std::cout << "Write failed" << std::endl;
+                }
             }
         }
     }
