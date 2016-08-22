@@ -19,8 +19,8 @@ public:
     Connection() = default;
     Connection(const Connection&) = delete;
     Connection& operator=(const Connection&) = delete;
-    Connection(boost::asio::io_service& ioService, std::size_t timeoutMilli = 0)
-        : m_socket(ioService), m_timer(ioService), m_timeoutMilli(timeoutMilli) {}
+    Connection(boost::asio::io_service& ios, std::size_t timeoutMilli = 0)
+        : m_socket(ios), m_timer(ios), m_timeoutMilli(timeoutMilli) {}
 
     void start()
     {

@@ -28,24 +28,24 @@ public:
         {
             IoServerPtr ioService = std::make_shared<boost::asio::io_service>();
             WorkPtr work = std::make_shared<boost::asio::io_service::work>(*ioService);
-            m_ioServiceVec.emplace_back(ioService);
+            m_iosVec.emplace_back(ioService);
             m_workVec.emplace_back(work);
         }
     }
 
     void run()
     {
-        for (std::size_t i = 0; i < m_ioServiceVec.size(); ++i)
+        for (std::size_t i = 0; i < m_iosVec.size(); ++i)
         {
             std::shared_ptr<std::thread> t = 
-                std::make_shared<std::thread>(boost::bind(&boost::asio::io_service::run, m_ioServiceVec[i]));
+                std::make_shared<std::thread>(boost::bind(&boost::asio::io_service::run, m_iosVec[i]));
             m_threadVec.emplace_back(t);
         }
     }
 
     void stop()
     {
-        for (auto& iter : m_ioServiceVec)
+        for (auto& iter : m_iosVec)
         {
             if (iter != nullptr)
             {
@@ -67,9 +67,9 @@ public:
 
     boost::asio::io_service& getIoService()
     {
-        boost::asio::io_service& ioService = *m_ioServiceVec[m_nextIoService];
+        boost::asio::io_service& ioService = *m_iosVec[m_nextIoService];
         ++m_nextIoService;
-        if (m_nextIoService == m_ioServiceVec.size())
+        if (m_nextIoService == m_iosVec.size())
         {
             m_nextIoService = 0;
         }
@@ -79,7 +79,7 @@ public:
 private:
     using IoServerPtr = std::shared_ptr<boost::asio::io_service>;
     using WorkPtr = std::shared_ptr<boost::asio::io_service::work>;
-    std::vector<IoServerPtr> m_ioServiceVec;
+    std::vector<IoServerPtr> m_iosVec;
     std::vector<WorkPtr> m_workVec;
     std::vector<std::shared_ptr<std::thread>> m_threadVec; 
     std::size_t m_nextIoService = 0;

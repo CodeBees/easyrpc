@@ -23,7 +23,7 @@ public:
     Client& operator=(const Client&) = delete;
 
     Client(const std::string& ip, unsigned short port) 
-        : m_socket(m_ioService), m_endpoint(boost::asio::ip::address::from_string(ip), port) {}
+        : m_socket(m_ios), m_endpoint(boost::asio::ip::address::from_string(ip), port) {}
     ~Client()
     {
         stop();
@@ -31,13 +31,13 @@ public:
 
     void run()
     {
-        m_thread = std::make_unique<std::thread>([this]{ m_ioService.run(); });
+        m_thread = std::make_unique<std::thread>([this]{ m_ios.run(); });
     }
 
     void stop()
     {
         disconnect();
-        m_ioService.stop();
+        m_ios.stop();
         if (m_thread != nullptr)
         {
             if (m_thread->joinable())
@@ -143,7 +143,7 @@ private:
     }
 
 private:
-    boost::asio::io_service m_ioService;
+    boost::asio::io_service m_ios;
     boost::asio::ip::tcp::socket m_socket;
     boost::asio::ip::tcp::endpoint m_endpoint;
     std::unique_ptr<std::thread> m_thread;

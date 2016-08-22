@@ -14,8 +14,8 @@ public:
     Server() = default;
     Server(const Server&) = delete;
     Server& operator=(const Server&) = delete;
-    Server(const std::string& ip, unsigned short port, std::size_t ioPoolSize, std::size_t timeoutMilli = 0)
-        : m_ioServicePool(ioPoolSize), m_acceptor(m_ioServicePool.getIoService()), 
+    Server(const std::string& ip, unsigned short port, std::size_t iosPoolSize, std::size_t timeoutMilli = 0)
+        : m_iosPool(iosPoolSize), m_acceptor(m_iosPool.getIoService()), 
         m_ip(ip), m_port(port), m_timeoutMilli(timeoutMilli) {}
 
     ~Server()
@@ -32,12 +32,12 @@ public:
     {
         bindAndListen();
         accept();
-        m_ioServicePool.run();
+        m_iosPool.run();
     }
 
     void stop()
     {
-        m_ioServicePool.stop();
+        m_iosPool.stop();
     }
 
     template<typename Function>
@@ -55,7 +55,6 @@ public:
 private:
     void bindAndListen()
     {
-        /* boost::asio::ip::tcp::endpoint ep(boost::asio::ip::tcp::v4(), m_port); */
         boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address_v4::from_string(m_ip), m_port);
         m_acceptor.open(ep.protocol());
         m_acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
@@ -65,7 +64,7 @@ private:
 
     void accept()
     {
-        std::shared_ptr<Connection> conn = std::make_shared<Connection>(m_ioServicePool.getIoService(), m_timeoutMilli);
+        std::shared_ptr<Connection> conn = std::make_shared<Connection>(m_iosPool.getIoService(), m_timeoutMilli);
         m_acceptor.async_accept(conn->socket(), [this, conn](boost::system::error_code ec)
         {
             if (!ec)
@@ -77,7 +76,7 @@ private:
     }
 
 private:
-    IoServicePool m_ioServicePool;
+    IoServicePool m_iosPool;
     boost::asio::ip::tcp::acceptor m_acceptor;
     std::string m_ip;
     unsigned short m_port = 0;
