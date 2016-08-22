@@ -21,10 +21,22 @@
 #include <boost/serialization/unordered_set.hpp>
 #include <boost/serialization/boost_unordered_map.hpp>
 #include <boost/serialization/boost_unordered_set.hpp>
+#include <boost/serialization/version.hpp>
+#include <boost/serialization/split_member.hpp>
+
+struct Error
+{
+    int error = 0;
+    template<class Archive>
+    void serialize(Archive& ar, const unsigned int)
+    {
+        ar & error;
+    }
+};
 
 struct PersonInfoReq
 {
-    int cardId;
+    int cardId = 0;
     std::string name;
 
     template<class Archive>
@@ -35,16 +47,17 @@ struct PersonInfoReq
     }
 };
 
-struct PersonInfoRes
+struct PersonInfoRes : public Error
 {
-    int cardId;
+    int cardId = 0;
     std::string name;
-    int age;
+    int age = 0;
     std::string national;
 
     template<class Archive>
     void serialize(Archive& ar, const unsigned int)
     {
+        ar & boost::serialization::base_object<Error>(*this);
         ar & cardId;
         ar & name;
         ar & age;

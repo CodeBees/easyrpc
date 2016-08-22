@@ -15,12 +15,21 @@ bool print(const std::string& str, int i)
     return true;
 }
 
-PersonInfoRes queryPersonInfo(const PersonInfoReq& req)
+std::vector<PersonInfoRes> queryPersonInfo(const PersonInfoReq& req)
 {
     std::cout << "cardId: " << req.cardId << std::endl;
     std::cout << "name: " << req.name << std::endl;
-    PersonInfoRes res { req.cardId, req.name, 20, "汉" };
-    return res;
+    std::vector<PersonInfoRes> vec;
+    for (int i = 0; i < 2; ++i)
+    {
+        PersonInfoRes res;
+        res.error = 1;
+        res.cardId = 11111;
+        res.name = "Jack";
+        res.national = "汉";
+        vec.emplace_back(std::move(res));
+    }
+    return vec;
 }
 
 class Utils
