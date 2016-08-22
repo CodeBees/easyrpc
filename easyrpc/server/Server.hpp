@@ -79,9 +79,8 @@ private:
 private:
     IoServicePool m_ioServicePool;
     boost::asio::ip::tcp::acceptor m_acceptor;
-    /* std::shared_ptr<Connection> m_conn; */
-    std::string m_ip = "127.0.0.1";
-    unsigned short m_port = 8888;
+    std::string m_ip;
+    unsigned short m_port = 0;
     std::size_t m_timeoutMilli = 0;
 };
 

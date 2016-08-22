@@ -37,11 +37,10 @@ public:
 
 int main()
 {
-    std::cout << "main thread id: " << std::this_thread::get_id() << std::endl;
     Utils u;
 
     std::size_t num = std::thread::hardware_concurrency();
-    easyrpc::Server server("127.0.0.1", 8888, num);
+    easyrpc::Server server("0.0.0.0", 8888, num);
     try
     {
         server.setThreadPoolSize(10);
