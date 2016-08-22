@@ -48,6 +48,26 @@ public:
     }
 
     template<typename Protocol, typename... Args>
+    typename std::enable_if<std::is_void<typename Protocol::ReturnType>::value, typename Protocol::ReturnType>::type
+    call(const Protocol& protocol, Args&&... args)
+    {
+        connect();
+        if (!write(protocol.name(), protocol.pack(std::forward<Args>(args)...)))
+        {
+            throw std::runtime_error("Write failed");
+        }
+
+        // 读取到buf后不进行任何处理，因为client建立的短连接
+        // 需要server端进行确认后才能断开连接
+        if (!read())
+        {
+            throw std::runtime_error("Read failed");
+        }
+
+        disconnect();
+    }
+
+    template<typename Protocol, typename... Args>
     typename std::enable_if<!std::is_void<typename Protocol::ReturnType>::value, typename Protocol::ReturnType>::type
     call(const Protocol& protocol, Args&&... args)
     {

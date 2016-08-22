@@ -8,7 +8,7 @@ namespace easyrpc
 {
 
 template<typename T>
-std::string pack(T& t)
+std::string pack(const T& t)
 {
     easypack::Pack p;
     p.pack(t);
@@ -23,16 +23,6 @@ public:
     TokenParser& operator=(const TokenParser&) = delete;
 
     TokenParser(const std::string& text) : m_up(text) {}
-
-#if 0
-    template<typename T>
-    T get()
-    {
-        T t;
-        m_up.unpackTop(t);
-        return t;
-    }
-#endif
 
     template<typename T>
     typename std::decay<T>::type get()

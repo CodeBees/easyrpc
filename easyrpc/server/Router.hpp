@@ -102,9 +102,10 @@ public:
 private:
     template<typename Function, typename... Args>
     static typename std::enable_if<std::is_void<typename std::result_of<Function(Args...)>::type>::value>::type
-    call(const Function& func, const std::tuple<Args...>& tp, std::string&)
+    call(const Function& func, const std::tuple<Args...>& tp, std::string& result)
     {
         callImpl(func, std::make_index_sequence<sizeof...(Args)>{}, tp);
+        result = pack(true);
     }
 
     template<typename Function, typename... Args>
@@ -124,9 +125,10 @@ private:
 
     template<typename Function, typename Self, typename... Args>
     static typename std::enable_if<std::is_void<typename std::result_of<Function(Self, Args...)>::type>::value>::type
-    callMember(const Function& func, Self* self, const std::tuple<Args...>& tp, std::string&)
+    callMember(const Function& func, Self* self, const std::tuple<Args...>& tp, std::string& result)
     {
         callMemberImpl(func, self, std::make_index_sequence<sizeof...(Args)>{}, tp);
+        result = pack(true);
     }
 
     template<typename Function, typename Self, typename... Args>

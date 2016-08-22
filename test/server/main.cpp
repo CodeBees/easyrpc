@@ -4,15 +4,9 @@
 #include "easyrpc/EasyRpc.hpp"
 #include "ProtocolDefine.hpp"
 
-int add(int a, int b)
-{
-    return a + b;
-}
-
-bool print(const std::string& str, int i)
+void print(const std::string& str, int i)
 {
     std::cout << str << ", " << i << std::endl;
-    return true;
 }
 
 std::vector<PersonInfoRes> queryPersonInfo(const PersonInfoReq& req)
@@ -35,14 +29,9 @@ std::vector<PersonInfoRes> queryPersonInfo(const PersonInfoReq& req)
 class Utils
 {
 public:
-    std::string toUpper(const std::string& str)
+    int add(int a, int b)
     {
-        std::string temp;
-        for (std::size_t i = 0; i < str.size(); ++i)
-        {
-            temp.push_back(std::toupper(str[i]));
-        }
-        return temp;
+        return a + b;
     }
 };
 
@@ -56,9 +45,8 @@ int main()
     try
     {
         server.setThreadPoolSize(10);
-        server.bind("add", &add);
-        server.bind("toUpper", &Utils::toUpper, &u);
         server.bind("print", &print);
+        server.bind("add", &Utils::add, &u);
         server.bind("queryPersonInfo", &queryPersonInfo);
         server.run();
     }
