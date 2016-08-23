@@ -26,7 +26,8 @@ public:
     Client(const std::string& ip, unsigned short port, std::size_t timeoutMilli = 0) 
         : m_work(m_ios), m_socket(m_ios), 
         m_endpoint(boost::asio::ip::address::from_string(ip), port), 
-        m_timer(m_ios), m_timeoutMilli(timeoutMilli) {}
+        m_timerWork(m_timerIos), 
+        m_timer(m_timerIos), m_timeoutMilli(timeoutMilli) {}
     ~Client()
     {
         stop();
@@ -35,17 +36,26 @@ public:
     void run()
     {
         m_thread = std::make_unique<std::thread>([this]{ m_ios.run(); });
+        m_timerThread = std::make_unique<std::thread>([this]{ m_timerIos.run(); });
     }
 
     void stop()
     {
-        disconnect();
         m_ios.stop();
         if (m_thread != nullptr)
         {
             if (m_thread->joinable())
             {
                 m_thread->join();
+            }
+        }
+
+        m_timerIos.stop();
+        if (m_timerThread != nullptr)
+        {
+            if (m_timerThread->joinable())
+            {
+                m_timerThread->join();
             }
         }
     }
@@ -138,18 +148,19 @@ private:
             stopTimer();
             return false;
         }
-        stopTimer();
 
         ResponseHeader head;
         memcpy(&head, m_head, sizeof(m_head));
         if (head.bodyLen <= 0 || head.bodyLen > MaxBufferLenght)
         {
+            stopTimer();
             return false;
         }
 
         m_body.clear();
         m_body.resize(head.bodyLen);
         boost::asio::read(m_socket, boost::asio::buffer(m_body), ec); 
+        stopTimer();
         return ec ? false : true;
     }
 
@@ -182,6 +193,9 @@ private:
     std::unique_ptr<std::thread> m_thread;
     char m_head[ResponseHeaderLenght];
     std::vector<char> m_body;
+    boost::asio::io_service m_timerIos;
+    boost::asio::io_service::work m_timerWork;
+    std::unique_ptr<std::thread> m_timerThread;
     ATimer<> m_timer;
     std::size_t m_timeoutMilli = 0;
 };
