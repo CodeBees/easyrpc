@@ -7,6 +7,7 @@
 #include <boost/asio.hpp>
 #include <boost/timer.hpp>
 #include "base/Header.hpp"
+#include "base/ATimer.hpp"
 #include "Router.hpp"
 
 namespace easyrpc
@@ -60,6 +61,7 @@ private:
     void readHead()
     {
         startTimer();
+
         auto self(this->shared_from_this());
         boost::asio::async_read(m_socket, boost::asio::buffer(m_head), [this, self](boost::system::error_code ec, std::size_t)
         {
@@ -157,23 +159,9 @@ private:
         }
 
         auto self(this->shared_from_this());
-        m_timer.expires_from_now(boost::posix_time::milliseconds(m_timeoutMilli));
-        m_timer.async_wait([this, self](const boost::system::error_code& ec)
-        {
-            if (!m_socket.is_open())
-            {
-                return;
-            }
-
-            // timer被取消时，ec为true
-            if (ec)
-            {
-                return;
-            }
-
-            // 读取超时，关闭socket
-            disconnect();
-        });
+        m_timer.bind([this, self]{ disconnect(); });
+        m_timer.setSingleShot(true);
+        m_timer.start(m_timeoutMilli);
     }
 
     void stopTimer()
@@ -182,12 +170,12 @@ private:
         {
             return;
         }
-        m_timer.cancel();
+        m_timer.stop();
     }
 
 private:
     boost::asio::ip::tcp::socket m_socket;
-    boost::asio::deadline_timer m_timer;
+    ATimer<> m_timer;
     char m_head[RequestHeaderLenght];
     std::vector<char> m_protocol;
     std::vector<char> m_body;
