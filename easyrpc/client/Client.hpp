@@ -23,7 +23,7 @@ public:
     Client& operator=(const Client&) = delete;
 
     Client(const std::string& ip, unsigned short port) 
-        : m_socket(m_ios), m_endpoint(boost::asio::ip::address::from_string(ip), port) {}
+        : m_work(m_ios), m_socket(m_ios), m_endpoint(boost::asio::ip::address::from_string(ip), port) {}
     ~Client()
     {
         stop();
@@ -54,6 +54,7 @@ public:
         connect();
         if (!write(protocol.name(), protocol.pack(std::forward<Args>(args)...)))
         {
+            disconnect();
             throw std::runtime_error("Write failed");
         }
 
@@ -61,6 +62,7 @@ public:
         // 需要server端进行确认后才能断开连接
         if (!read())
         {
+            disconnect();
             throw std::runtime_error("Read failed");
         }
 
@@ -74,11 +76,13 @@ public:
         connect();
         if (!write(protocol.name(), protocol.pack(std::forward<Args>(args)...)))
         {
+            disconnect();
             throw std::runtime_error("Write failed");
         }
 
         if (!read())
         {
+            disconnect();
             throw std::runtime_error("Read failed");
         }
 
@@ -99,7 +103,8 @@ private:
 
     void disconnect()
     {
-        m_socket.close();
+        boost::system::error_code ignoredec;
+        m_socket.close(ignoredec);
     }
 
     bool write(const std::string& protocol, const std::string& body)
@@ -144,6 +149,7 @@ private:
 
 private:
     boost::asio::io_service m_ios;
+    boost::asio::io_service::work m_work;
     boost::asio::ip::tcp::socket m_socket;
     boost::asio::ip::tcp::endpoint m_endpoint;
     std::unique_ptr<std::thread> m_thread;

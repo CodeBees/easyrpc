@@ -33,6 +33,7 @@ public:
                 if (!conn->write(result))
                 {
                     std::cout << "Write failed" << std::endl;
+                    conn->disconnect();
                 }
             }
         }

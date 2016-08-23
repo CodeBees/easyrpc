@@ -50,6 +50,12 @@ public:
         return ec ? false : true;
     }
 
+    void disconnect()
+    {
+        boost::system::error_code ignoredec;
+        m_socket.close(ignoredec);
+    }
+
 private:
     void readHead()
     {
@@ -67,7 +73,7 @@ private:
             {
                 std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
                 stopTimer();
-                close();
+                disconnect();
                 return;
             }
 
@@ -82,7 +88,7 @@ private:
             else
             {
                 stopTimer();
-                close();
+                disconnect();
             }
         });
     }
@@ -104,7 +110,7 @@ private:
             {
                 std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
                 stopTimer();
-                close();
+                disconnect();
                 return;
             }
 
@@ -128,7 +134,7 @@ private:
             if (ec)
             {
                 std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
-                close();
+                disconnect();
                 return;
             }
                               
@@ -141,12 +147,6 @@ private:
         boost::asio::ip::tcp::no_delay option(true);
         boost::system::error_code ec;
         m_socket.set_option(option, ec);
-    }
-
-    void close()
-    {
-        boost::system::error_code ignoredec;
-        m_socket.close(ignoredec);
     }
 
     void startTimer()
@@ -168,12 +168,11 @@ private:
             // timer被取消时，ec为true
             if (ec)
             {
-                std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
                 return;
             }
 
             // 读取超时，关闭socket
-            close();
+            disconnect();
         });
     }
 

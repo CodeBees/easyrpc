@@ -16,11 +16,12 @@ int main()
     {
         try
         {
-            client.call(print, "Hello world", i);
+            /* client.call(print, "Hello world", i); */
 
             auto ret = client.call(add, 1, 2);
             std::cout << "ret: " << ret << std::endl;
             
+#if 0
             PersonInfoReq req { 12345678, "Jack" };
             auto vec = client.call(queryPersonInfo, req);
             for (auto& res : vec)
@@ -31,10 +32,11 @@ int main()
                 std::cout << "age: " << res.age << std::endl;
                 std::cout << "national: " << res.national << std::endl;
             }
+#endif
         }
         catch (std::exception& e)
         {
-            std::cout << "Exception: " << e.what() << std::endl;
+            std::cout << "Rpc exception: " << e.what() << std::endl;
         }
     }
 
