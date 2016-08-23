@@ -175,10 +175,10 @@ private:
 
 private:
     boost::asio::ip::tcp::socket m_socket;
-    ATimer<> m_timer;
     char m_head[RequestHeaderLenght];
     std::vector<char> m_protocol;
     std::vector<char> m_body;
+    ATimer<> m_timer;
     std::size_t m_timeoutMilli = 0;
 };
 

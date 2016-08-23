@@ -10,6 +10,7 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include "base/Header.hpp"
+#include "base/ATimer.hpp"
 #include "Protocol.hpp"
 
 namespace easyrpc
@@ -22,8 +23,10 @@ public:
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;
 
-    Client(const std::string& ip, unsigned short port) 
-        : m_work(m_ios), m_socket(m_ios), m_endpoint(boost::asio::ip::address::from_string(ip), port) {}
+    Client(const std::string& ip, unsigned short port, std::size_t timeoutMilli = 0) 
+        : m_work(m_ios), m_socket(m_ios), 
+        m_endpoint(boost::asio::ip::address::from_string(ip), port), 
+        m_timer(m_ios), m_timeoutMilli(timeoutMilli) {}
     ~Client()
     {
         stop();
@@ -127,12 +130,15 @@ private:
 
     bool read()
     {
+        startTimer();
         boost::system::error_code ec;
         boost::asio::read(m_socket, boost::asio::buffer(m_head), ec);
         if (ec)
         {
+            stopTimer();
             return false;
         }
+        stopTimer();
 
         ResponseHeader head;
         memcpy(&head, m_head, sizeof(m_head));
@@ -147,6 +153,27 @@ private:
         return ec ? false : true;
     }
 
+    void startTimer()
+    {
+        if (m_timeoutMilli == 0)
+        {
+            return;
+        }
+
+        m_timer.bind([this]{ disconnect(); });
+        m_timer.setSingleShot(true);
+        m_timer.start(m_timeoutMilli);
+    }
+
+    void stopTimer()
+    {
+        if (m_timeoutMilli == 0)
+        {
+            return;
+        }
+        m_timer.stop();
+    }
+
 private:
     boost::asio::io_service m_ios;
     boost::asio::io_service::work m_work;
@@ -155,6 +182,8 @@ private:
     std::unique_ptr<std::thread> m_thread;
     char m_head[ResponseHeaderLenght];
     std::vector<char> m_body;
+    ATimer<> m_timer;
+    std::size_t m_timeoutMilli = 0;
 };
 
 }
