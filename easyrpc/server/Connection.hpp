@@ -53,20 +53,20 @@ public:
 private:
     void readHead()
     {
-        resetTimer();
+        startTimer();
         auto self(this->shared_from_this());
         boost::asio::async_read(m_socket, boost::asio::buffer(m_head), [this, self](boost::system::error_code ec, std::size_t)
         {
             if (!m_socket.is_open())
             {
-                cancelTimer();
+                stopTimer();
                 return;
             }
 
             if (ec)
             {
                 std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
-                cancelTimer();
+                stopTimer();
                 close();
                 return;
             }
@@ -81,7 +81,7 @@ private:
             }
             else
             {
-                cancelTimer();
+                stopTimer();
                 close();
             }
         });
@@ -96,14 +96,14 @@ private:
         {
             if (!m_socket.is_open())
             {
-                cancelTimer();
+                stopTimer();
                 return;
             }
 
             if (ec)
             {
                 std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
-                cancelTimer();
+                stopTimer();
                 close();
                 return;
             }
@@ -119,7 +119,7 @@ private:
         auto self(this->shared_from_this());
         boost::asio::async_read(m_socket, boost::asio::buffer(m_body), [&protocol, this, self](boost::system::error_code ec, std::size_t)
         {
-            cancelTimer();
+            stopTimer();
             if (!m_socket.is_open())
             {
                 return;
@@ -149,7 +149,7 @@ private:
         m_socket.close(ignoredec);
     }
 
-    void resetTimer()
+    void startTimer()
     {
         if (m_timeoutMilli == 0)
         {
@@ -165,18 +165,19 @@ private:
                 return;
             }
 
+            // timer被取消时，ec为true
             if (ec)
             {
                 std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
                 return;
             }
 
-            // Connection timeout
+            // 读取超时，关闭socket
             close();
         });
     }
 
-    void cancelTimer()
+    void stopTimer()
     {
         if (m_timeoutMilli == 0)
         {
