@@ -11,6 +11,7 @@
 #include <boost/asio.hpp>
 #include "base/Header.hpp"
 #include "base/ATimer.hpp"
+#include "base/ScopeGuard.hpp"
 #include "Protocol.hpp"
 
 namespace easyrpc
@@ -65,21 +66,18 @@ public:
     call(const Protocol& protocol, Args&&... args)
     {
         connect();
+        auto guard = makeGuard([this]{ disconnect(); });
         if (!write(protocol.name(), protocol.pack(std::forward<Args>(args)...)))
         {
-            disconnect();
             throw std::runtime_error("Write failed");
         }
 
-        // 读取到buf后不进行任何处理，因为client建立的短连接
-        // 需要server端进行确认后才能断开连接
+        // 读取到buf后不进行任何处理，因为client建立的短连接.
+        // 需要server端进行确认后才能断开连接.
         if (!read())
         {
-            disconnect();
             throw std::runtime_error("Read failed");
         }
-
-        disconnect();
     }
 
     template<typename Protocol, typename... Args>
@@ -87,19 +85,17 @@ public:
     call(const Protocol& protocol, Args&&... args)
     {
         connect();
+        auto guard = makeGuard([this]{ disconnect(); });
         if (!write(protocol.name(), protocol.pack(std::forward<Args>(args)...)))
         {
-            disconnect();
             throw std::runtime_error("Write failed");
         }
 
         if (!read())
         {
-            disconnect();
             throw std::runtime_error("Read failed");
         }
 
-        disconnect();
         return protocol.unpack(std::string(&m_body[0], m_body.size()));
     }
 
@@ -116,8 +112,12 @@ private:
 
     void disconnect()
     {
-        boost::system::error_code ignoredec;
-        m_socket.close(ignoredec);
+        if (m_socket.is_open())
+        {
+            boost::system::error_code ignoredec;
+            m_socket.shutdown(boost::asio::socket_base::shutdown_both, ignoredec);
+            m_socket.close(ignoredec);
+        }
     }
 
     bool write(const std::string& protocol, const std::string& body)
@@ -141,11 +141,11 @@ private:
     bool read()
     {
         startTimer();
+        auto guard = makeGuard([this]{ stopTimer(); });
         boost::system::error_code ec;
         boost::asio::read(m_socket, boost::asio::buffer(m_head), ec);
         if (ec)
         {
-            stopTimer();
             return false;
         }
 
@@ -153,14 +153,12 @@ private:
         memcpy(&head, m_head, sizeof(m_head));
         if (head.bodyLen <= 0 || head.bodyLen > MaxBufferLenght)
         {
-            stopTimer();
             return false;
         }
 
         m_body.clear();
         m_body.resize(head.bodyLen);
         boost::asio::read(m_socket, boost::asio::buffer(m_body), ec); 
-        stopTimer();
         return ec ? false : true;
     }
 

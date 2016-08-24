@@ -8,6 +8,7 @@
 #include <boost/timer.hpp>
 #include "base/Header.hpp"
 #include "base/ATimer.hpp"
+#include "base/ScopeGuard.hpp"
 #include "Router.hpp"
 
 namespace easyrpc
@@ -53,29 +54,30 @@ public:
 
     void disconnect()
     {
-        boost::system::error_code ignoredec;
-        m_socket.close(ignoredec);
+        if (m_socket.is_open())
+        {
+            boost::system::error_code ignoredec;
+            m_socket.shutdown(boost::asio::socket_base::shutdown_both, ignoredec);
+            m_socket.close(ignoredec);
+        }
     }
 
 private:
     void readHead()
     {
         startTimer();
-
         auto self(this->shared_from_this());
         boost::asio::async_read(m_socket, boost::asio::buffer(m_head), [this, self](boost::system::error_code ec, std::size_t)
         {
+            auto guard = makeGuard([this, self]{ stopTimer(); disconnect(); });
             if (!m_socket.is_open())
             {
-                stopTimer();
                 return;
             }
 
             if (ec)
             {
                 std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
-                stopTimer();
-                disconnect();
                 return;
             }
 
@@ -85,12 +87,8 @@ private:
             if (len > 0 && len < MaxBufferLenght)
             {
                 readProtocol(head);
+                guard.dismiss();
                 return;
-            }
-            else
-            {
-                stopTimer();
-                disconnect();
             }
         });
     }
@@ -102,21 +100,20 @@ private:
         auto self(this->shared_from_this());
         boost::asio::async_read(m_socket, boost::asio::buffer(m_protocol), [head, this, self](boost::system::error_code ec, std::size_t)
         {
+            auto guard = makeGuard([this, self]{ stopTimer(); disconnect(); });
             if (!m_socket.is_open())
             {
-                stopTimer();
                 return;
             }
 
             if (ec)
             {
                 std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
-                stopTimer();
-                disconnect();
                 return;
             }
 
             readBody(head.bodyLen, std::string(&m_protocol[0], m_protocol.size()));
+            guard.dismiss();
         });
     }
 

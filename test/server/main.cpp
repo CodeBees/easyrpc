@@ -20,7 +20,7 @@ std::vector<PersonInfoRes> queryPersonInfo(const PersonInfoReq& req)
         res.error = 1;
         res.cardId = 11111;
         res.name = "Jack";
-        res.national = "汉";
+        res.national = "han";
         vec.emplace_back(std::move(res));
     }
     return vec;
@@ -31,7 +31,7 @@ class Utils
 public:
     int add(int a, int b)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+        /* std::this_thread::sleep_for(std::chrono::milliseconds(10000)); */
         return a + b;
     }
 };
@@ -42,6 +42,7 @@ int main()
 
     std::size_t num = std::thread::hardware_concurrency();
     easyrpc::Server server("0.0.0.0", 8888, num);
+    /* easyrpc::Server server("0.0.0.0", 8888, num, 3000); */
     try
     {
         server.setThreadPoolSize(10);

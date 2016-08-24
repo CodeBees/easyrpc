@@ -9,8 +9,8 @@ EASYRPC_RPC_PROTOCOL_DEFINE(queryPersonInfo, std::vector<PersonInfoRes>(const Pe
 
 int main()
 {
-    /* easyrpc::Client client("127.0.0.1", 8888); */
-    easyrpc::Client client("127.0.0.1", 8888, 3000);
+    easyrpc::Client client("127.0.0.1", 8888);
+    /* easyrpc::Client client("127.0.0.1", 8888, 3000); */
     client.run();
 
     for (int i = 0; i < 1; ++i)
