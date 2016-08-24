@@ -25,16 +25,23 @@ public:
     {
         if (!body.empty())
         {
-            TokenParser parser(body);
-            std::string result;
-            m_func(parser, result);
-            if (!result.empty())
+            try
             {
-                if (!conn->write(result))
+                TokenParser parser(body);
+                std::string result;
+                m_func(parser, result);
+                if (!result.empty())
                 {
-                    std::cout << "Write failed" << std::endl;
-                    conn->disconnect();
+                    if (!conn->write(result))
+                    {
+                        std::cout << "Write failed" << std::endl;
+                        conn->disconnect();
+                    }
                 }
+            }
+            catch (std::exception& e)
+            {
+                std::cout << "Exception: " << e.what() << std::endl;
             }
         }
     }

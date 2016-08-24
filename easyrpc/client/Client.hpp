@@ -37,7 +37,10 @@ public:
     void run()
     {
         m_thread = std::make_unique<std::thread>([this]{ m_ios.run(); });
-        m_timerThread = std::make_unique<std::thread>([this]{ m_timerIos.run(); });
+        if (m_timeoutMilli != 0)
+        {
+            m_timerThread = std::make_unique<std::thread>([this]{ m_timerIos.run(); });
+        }
     }
 
     void stop()

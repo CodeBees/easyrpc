@@ -18,7 +18,7 @@ public:
         stop();
     }
 
-    void start(unsigned int duration)
+    void start(std::size_t duration)
     {
         m_timer.expires_from_now(Duration(duration));
         m_timer.async_wait([this, duration](const boost::system::error_code& ec)
