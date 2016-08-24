@@ -1,7 +1,6 @@
 #ifndef _THREADPOOL_H
 #define _THREADPOOL_H
 
-#include <assert.h>
 #include <vector>
 #include <queue>
 #include <thread>
@@ -30,7 +29,12 @@ public:
 
     void initThreadNum(std::size_t num)
     {
-        assert(num > 0 && num <= MaxNumOfThread);
+        if (num <= 0 || num > MaxNumOfThread)
+        {
+            std::string str = "Number of threads in the range of 1 to " + std::to_string(MaxNumOfThread);
+            throw std::invalid_argument(str);
+        }
+
         for (std::size_t i = 0; i < num; ++i)
         {
             WorkerThreadPtr t = std::make_shared<std::thread>(std::bind(&ThreadPool::runTask, this));

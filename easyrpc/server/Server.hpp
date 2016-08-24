@@ -26,10 +26,16 @@ public:
     void setThreadPoolSize(std::size_t size)
     {
         Router::instance().setThreadPoolSize(size);
+        m_isSetThreadPoolSize = true;
     }
 
     void run()
     {
+        if (!m_isSetThreadPoolSize)
+        {
+            const std::size_t size = 1;
+            setThreadPoolSize(size); 
+        }
         bindAndListen();
         accept();
         m_iosPool.run();
@@ -81,6 +87,7 @@ private:
     std::string m_ip;
     unsigned short m_port = 0;
     std::size_t m_timeoutMilli = 0;
+    bool m_isSetThreadPoolSize = false;
 };
 
 }
