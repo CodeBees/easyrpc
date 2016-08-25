@@ -11,32 +11,53 @@ namespace easyrpc
 class Server
 {
 public:
-    Server() = default;
     Server(const Server&) = delete;
     Server& operator=(const Server&) = delete;
-    Server(const std::string& ip, unsigned short port, std::size_t iosPoolSize, std::size_t timeoutMilli = 0)
-        : m_iosPool(iosPoolSize), m_acceptor(m_iosPool.getIoService()), 
-        m_ip(ip), m_port(port), m_timeoutMilli(timeoutMilli) {}
+    Server() : m_iosPool(std::thread::hardware_concurrency()), m_acceptor(m_iosPool.getIoService()) {}
 
     ~Server()
     {
         stop();
     }
 
-    void setThreadPoolSize(std::size_t size)
+    Server& listen(const std::string& port)
     {
-        Router::instance().setThreadPoolSize(size);
-        m_isSetThreadPoolSize = true;
+        return listen("0.0.0.0", port);    
+    }
+
+    Server& listen(unsigned short port)
+    {
+        return listen("0.0.0.0", port);
+    }
+
+    Server& listen(const std::string& ip, const std::string& port)
+    {
+        return listen(ip, static_cast<unsigned short>(std::stoi(port)));
+    }
+
+    Server& listen(const std::string& ip, unsigned short port)
+    {
+        m_ip = ip;
+        m_port = port;
+        return *this;
+    }
+
+    Server& timeout(std::size_t timeoutMilli)
+    {
+        m_timeoutMilli = timeoutMilli;
+        return *this;
+    }
+
+    Server& multithreaded(std::size_t num)
+    {
+        m_threadNum = num;
+        return *this;
     }
 
     void run()
     {
-        if (!m_isSetThreadPoolSize)
-        {
-            const std::size_t size = 1;
-            setThreadPoolSize(size); 
-        }
-        bindAndListen();
+        Router::instance().multithreaded(m_threadNum);
+        listen();
         accept();
         m_iosPool.run();
     }
@@ -59,7 +80,7 @@ public:
     }
 
 private:
-    void bindAndListen()
+    void listen()
     {
         boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address_v4::from_string(m_ip), m_port);
         m_acceptor.open(ep.protocol());
@@ -84,10 +105,10 @@ private:
 private:
     IoServicePool m_iosPool;
     boost::asio::ip::tcp::acceptor m_acceptor;
-    std::string m_ip;
-    unsigned short m_port = 0;
+    std::string m_ip = "0.0.0.0";
+    unsigned short m_port = 8888;
     std::size_t m_timeoutMilli = 0;
-    bool m_isSetThreadPoolSize = false;
+    std::size_t m_threadNum = 1;
 };
 
 }

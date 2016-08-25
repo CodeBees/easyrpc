@@ -20,18 +20,32 @@ namespace easyrpc
 class Client
 {
 public:
-    Client() = default;
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;
+    Client() : m_work(m_ios), m_socket(m_ios), m_timerWork(m_timerIos), m_timer(m_timerIos) {}
 
-    Client(const std::string& ip, unsigned short port, std::size_t timeoutMilli = 0) 
-        : m_work(m_ios), m_socket(m_ios), 
-        m_endpoint(boost::asio::ip::address::from_string(ip), port), 
-        m_timerWork(m_timerIos), 
-        m_timer(m_timerIos), m_timeoutMilli(timeoutMilli) {}
     ~Client()
     {
         stop();
+    }
+
+    Client& address(const std::string& ip, unsigned short port)
+    {
+        return address(ip, std::to_string(port));
+    }
+
+    Client& address(const std::string& ip, const std::string& port)
+    {
+        boost::asio::ip::tcp::resolver resolver(m_ios);
+        boost::asio::ip::tcp::resolver::query query(boost::asio::ip::tcp::v4(), ip, port);
+        m_endpointIter = resolver.resolve(query);
+        return *this;
+    }
+
+    Client& timeout(std::size_t timeoutMilli)
+    {
+        m_timeoutMilli = timeoutMilli;
+        return *this;
     }
 
     void run()
@@ -105,12 +119,15 @@ public:
 private:
     void connect()
     {
+#if 0
         boost::system::error_code ec;
         m_socket.connect(m_endpoint, ec);
         if (ec)
         {
             throw std::runtime_error(ec.message()); 
         }
+#endif
+        boost::asio::connect(m_socket, m_endpointIter);
     }
 
     void disconnect()
@@ -190,7 +207,7 @@ private:
     boost::asio::io_service m_ios;
     boost::asio::io_service::work m_work;
     boost::asio::ip::tcp::socket m_socket;
-    boost::asio::ip::tcp::endpoint m_endpoint;
+    boost::asio::ip::tcp::resolver::iterator m_endpointIter;
     std::unique_ptr<std::thread> m_thread;
     char m_head[ResponseHeaderLenght];
     std::vector<char> m_body;

@@ -40,16 +40,13 @@ int main()
 {
     Utils u;
 
-    std::size_t num = std::thread::hardware_concurrency();
-    easyrpc::Server server("0.0.0.0", 8888, num);
-    /* easyrpc::Server server("0.0.0.0", 8888, num, 3000); */
+    easyrpc::Server server;
     try
     {
-        server.setThreadPoolSize(10);
         server.bind("print", &print);
         server.bind("add", &Utils::add, &u);
         server.bind("queryPersonInfo", &queryPersonInfo);
-        server.run();
+        server.listen(8888).multithreaded(10).run();
     }
     catch (std::exception& e)
     {

@@ -73,9 +73,9 @@ public:
         return router;
     }
 
-    void setThreadPoolSize(std::size_t size)
+    void multithreaded(std::size_t num)
     {
-        m_threadPool.initThreadNum(size);
+        m_threadPool.initThreadNum(num);
     }
 
     void stop()
