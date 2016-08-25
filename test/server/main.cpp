@@ -20,6 +20,7 @@ std::vector<PersonInfoRes> queryPersonInfo(const PersonInfoReq& req)
         res.error = 1;
         res.cardId = 11111;
         res.name = "Jack";
+        res.age = 20;
         res.national = "han";
         vec.emplace_back(std::move(res));
     }
@@ -31,7 +32,6 @@ class Utils
 public:
     int add(int a, int b)
     {
-        /* std::this_thread::sleep_for(std::chrono::milliseconds(10000)); */
         return a + b;
     }
 };
@@ -40,13 +40,14 @@ int main()
 {
     Utils u;
 
-    easyrpc::Server server;
+    easyrpc::Server app;
     try
     {
-        server.bind("print", &print);
-        server.bind("add", &Utils::add, &u);
-        server.bind("queryPersonInfo", &queryPersonInfo);
-        server.listen(8888).multithreaded(10).run();
+        app.bind("hi", []{ std::cout << "Say Hi!" << std::endl; });
+        app.bind("print", &print);
+        app.bind("add", &Utils::add, &u);
+        app.bind("queryPersonInfo", &queryPersonInfo);
+        app.listen(8888).multithreaded(10).run();
     }
     catch (std::exception& e)
     {
@@ -55,7 +56,7 @@ int main()
 
     std::cout << "Server start..." << std::endl;
     std::cin.get();
-    server.stop();
+    app.stop();
     std::cout << "Server stop..." << std::endl;
 
     return 0;

@@ -119,14 +119,6 @@ public:
 private:
     void connect()
     {
-#if 0
-        boost::system::error_code ec;
-        m_socket.connect(m_endpoint, ec);
-        if (ec)
-        {
-            throw std::runtime_error(ec.message()); 
-        }
-#endif
         boost::asio::connect(m_socket, m_endpointIter);
     }
 

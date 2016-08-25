@@ -7,11 +7,11 @@
 namespace easyrpc
 {
 
-template<typename T>
-std::string pack(const T& t)
+template<typename... Args>
+std::string pack(Args... args)
 {
     easypack::Pack p;
-    p.pack(t);
+    p.pack(std::forward<Args>(args)...);
     return p.getString();
 }
 
