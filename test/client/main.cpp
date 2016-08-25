@@ -14,7 +14,7 @@ int main()
 
     try
     {
-        app.address("127.0.0.1", 8888).run();
+        app.connect("127.0.0.1", 8888).run();
 
         for (int i = 0; i < 1; ++i)
         {

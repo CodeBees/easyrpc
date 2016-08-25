@@ -29,12 +29,12 @@ public:
         stop();
     }
 
-    Client& address(const std::string& ip, unsigned short port)
+    Client& connect(const std::string& ip, unsigned short port)
     {
-        return address(ip, std::to_string(port));
+        return connect(ip, std::to_string(port));
     }
 
-    Client& address(const std::string& ip, const std::string& port)
+    Client& connect(const std::string& ip, const std::string& port)
     {
         boost::asio::ip::tcp::resolver resolver(m_ios);
         boost::asio::ip::tcp::resolver::query query(boost::asio::ip::tcp::v4(), ip, port);
