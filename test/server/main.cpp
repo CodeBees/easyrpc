@@ -41,7 +41,7 @@ int main()
         app.bind("sayHello", []{ std::cout << "Hello" << std::endl; });
         app.bind("echo", &MessageHandle::echo, &hander);
         app.bind("queryPersonInfo", &queryPersonInfo);
-        app.listen(8888).multithreaded(10).run();
+        app.listen(50051).multithreaded(10).run();
     }
     catch (std::exception& e)
     {
