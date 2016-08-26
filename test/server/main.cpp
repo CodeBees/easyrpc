@@ -4,11 +4,6 @@
 #include "easyrpc/EasyRpc.hpp"
 #include "ProtocolDefine.hpp"
 
-void print(const std::string& str, int i)
-{
-    std::cout << str << ", " << i << std::endl;
-}
-
 std::vector<PersonInfoRes> queryPersonInfo(const PersonInfoReq& req)
 {
     std::cout << "cardId: " << req.cardId << std::endl;
@@ -27,25 +22,24 @@ std::vector<PersonInfoRes> queryPersonInfo(const PersonInfoReq& req)
     return vec;
 }
 
-class Utils
+class MessageHandle
 {
 public:
-    int add(int a, int b)
+    std::string echo(const std::string& str)
     {
-        return a + b;
+        return str;
     }
 };
 
 int main()
 {
-    Utils u;
 
+    MessageHandle hander;
     easyrpc::Server app;
     try
     {
-        app.bind("hi", []{ std::cout << "Say Hi!" << std::endl; });
-        app.bind("print", &print);
-        app.bind("add", &Utils::add, &u);
+        app.bind("sayHello", []{ std::cout << "Hello" << std::endl; });
+        app.bind("echo", &MessageHandle::echo, &hander);
         app.bind("queryPersonInfo", &queryPersonInfo);
         app.listen(8888).multithreaded(10).run();
     }
