@@ -154,7 +154,7 @@ private:
             return false;
         }
 
-        if (!checkhead())
+        if (!checkHead())
         {
             return false;
         }
@@ -169,7 +169,7 @@ private:
         return ec ? false : true;
     }
 
-    bool checkhead()
+    bool checkHead()
     {
         memcpy(&m_resHead, m_head, sizeof(m_head));
         if (m_resHead.bodyLen <= 0 || m_resHead.bodyLen > MaxBufferLenght)
