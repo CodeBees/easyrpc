@@ -12,6 +12,7 @@
 #include "base/Header.hpp"
 #include "base/ATimer.hpp"
 #include "base/ScopeGuard.hpp"
+#include "base/StringUtil.hpp"
 #include "Protocol.hpp"
 
 namespace easyrpc
@@ -28,6 +29,16 @@ public:
     ~Client()
     {
         stop();
+    }
+
+    Client& connect(const std::string& address)
+    {
+        std::vector<std::string> token = StringUtil::split(address, ":");
+        if (token.size() != 2)
+        {
+            throw std::invalid_argument("Address format error");
+        }
+        return connect(token[0], token[1]);
     }
 
     Client& connect(const std::string& ip, unsigned short port)

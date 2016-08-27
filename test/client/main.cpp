@@ -13,7 +13,7 @@ int main()
 
     try
     {
-        app.connect("127.0.0.1", 50051).run();
+        app.connect("localhost:50051").run();
 
         app.call(sayHello);
         std::cout << app.call(echo, "Hello world") << std::endl;
@@ -35,6 +35,7 @@ int main()
     catch (std::exception& e)
     {
         std::cout << "Rpc exception: " << e.what() << std::endl;
+        return 1;
     }
 
     std::cin.get();

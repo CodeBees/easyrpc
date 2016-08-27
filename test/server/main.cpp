@@ -46,6 +46,7 @@ int main()
     catch (std::exception& e)
     {
         std::cout << "Rpc exception: " << e.what() << std::endl;
+        return 1;
     }
 
     std::cout << "Server start..." << std::endl;
