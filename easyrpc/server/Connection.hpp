@@ -62,7 +62,8 @@ private:
     {
         startTimer();
         auto self(this->shared_from_this());
-        boost::asio::async_read(m_socket, boost::asio::buffer(m_head), [this, self](boost::system::error_code ec, std::size_t)
+        boost::asio::async_read(m_socket, boost::asio::buffer(m_head), 
+                                [this, self](boost::system::error_code ec, std::size_t)
         {
             auto guard = makeGuard([this, self]{ stopTimer(); disconnect(); });
             if (!m_socket.is_open())
@@ -93,7 +94,8 @@ private:
         m_protocol.clear();
         m_protocol.resize(head.protocolLen);
         auto self(this->shared_from_this());
-        boost::asio::async_read(m_socket, boost::asio::buffer(m_protocol), [head, this, self](boost::system::error_code ec, std::size_t)
+        boost::asio::async_read(m_socket, boost::asio::buffer(m_protocol), 
+                                [head, this, self](boost::system::error_code ec, std::size_t)
         {
             auto guard = makeGuard([this, self]{ stopTimer(); disconnect(); });
             if (!m_socket.is_open())
@@ -117,7 +119,8 @@ private:
         m_body.clear();
         m_body.resize(bodyLen);
         auto self(this->shared_from_this());
-        boost::asio::async_read(m_socket, boost::asio::buffer(m_body), [protocol, this, self](boost::system::error_code ec, std::size_t)
+        boost::asio::async_read(m_socket, boost::asio::buffer(m_body), 
+                                [protocol, this, self](boost::system::error_code ec, std::size_t)
         {
             stopTimer();
             if (!m_socket.is_open())
