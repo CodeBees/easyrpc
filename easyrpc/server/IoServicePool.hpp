@@ -45,24 +45,8 @@ public:
 
     void stop()
     {
-        for (auto& iter : m_iosVec)
-        {
-            if (iter != nullptr)
-            {
-                iter->stop();
-            }
-        }
-
-        for (auto& iter : m_threadVec)
-        {
-            if (iter != nullptr)
-            {
-                if (iter->joinable())
-                {
-                    iter->join();
-                }
-            }
-        }
+        stopIoServices();
+        stopThreads();
     }
 
     boost::asio::io_service& getIoService()
@@ -74,6 +58,32 @@ public:
             m_nextIoService = 0;
         }
         return ioService;
+    }
+
+private:
+    void stopIoServices()
+    {
+        for (auto& iter : m_iosVec)
+        {
+            if (iter != nullptr)
+            {
+                iter->stop();
+            }
+        }
+    }
+
+    void stopThreads()
+    {
+        for (auto& iter : m_threadVec)
+        {
+            if (iter != nullptr)
+            {
+                if (iter->joinable())
+                {
+                    iter->join();
+                }
+            }
+        }       
     }
 
 private:

@@ -13,7 +13,8 @@ class Server
 public:
     Server(const Server&) = delete;
     Server& operator=(const Server&) = delete;
-    Server() : m_iosPool(std::thread::hardware_concurrency()), m_acceptor(m_iosPool.getIoService()) {}
+    Server() : m_iosPool(std::thread::hardware_concurrency()), 
+    m_acceptor(m_iosPool.getIoService()) {}
 
     ~Server()
     {

@@ -37,19 +37,14 @@ public:
 
     bool write(const std::string& body)
     {
-        ResponseHeader head { static_cast<unsigned int>(body.size()) };
-        if (head.bodyLen > MaxBufferLenght)
+        unsigned int bodyLen = static_cast<unsigned int>(body.size());
+        if (bodyLen > MaxBufferLenght)
         {
             return false;
         }
 
-        std::vector<boost::asio::const_buffer> buffer;
-        buffer.emplace_back(boost::asio::buffer(&head, sizeof(ResponseHeader)));
-        buffer.emplace_back(boost::asio::buffer(body));
-
-        boost::system::error_code ec;
-        boost::asio::write(m_socket, buffer, ec);
-        return ec ? false : true;
+        auto buffer = getBuffer(ResponseHeader{ bodyLen }, body);
+        return writeImpl(buffer);
     }
 
     void disconnect()
@@ -168,6 +163,21 @@ private:
             return;
         }
         m_timer.stop();
+    }
+
+    std::vector<boost::asio::const_buffer> getBuffer(const ResponseHeader& head, const std::string& body)
+    {
+        std::vector<boost::asio::const_buffer> buffer;
+        buffer.emplace_back(boost::asio::buffer(&head, sizeof(ResponseHeader)));
+        buffer.emplace_back(boost::asio::buffer(body));
+        return buffer;
+    }
+
+    bool writeImpl(const std::vector<boost::asio::const_buffer>& buffer)
+    {
+        boost::system::error_code ec;
+        boost::asio::write(m_socket, buffer, ec);
+        return ec ? false : true;
     }
 
 private:
