@@ -73,6 +73,11 @@ public:
         }
         return result;
     }
+
+    static bool contains(const std::string& str, const std::string& token)
+    {
+        return str.find(token) == std::string::npos ? false : true;
+    }
 };
 
 #endif

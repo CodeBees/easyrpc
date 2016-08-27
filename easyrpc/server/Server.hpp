@@ -4,6 +4,7 @@
 #include "IoServicePool.hpp"
 #include "Router.hpp"
 #include "Connection.hpp"
+#include "base/StringUtil.hpp"
 
 namespace easyrpc
 {
@@ -21,9 +22,23 @@ public:
         stop();
     }
 
-    Server& listen(const std::string& port)
+    Server& listen(const std::string& address)
     {
-        return listen("0.0.0.0", port);    
+        if (StringUtil::contains(address, ":"))
+        {
+            std::vector<std::string> token = StringUtil::split(address, ":");
+            if (token.size() != 2)
+            {
+                throw std::invalid_argument("Address format error");
+            }
+            if (StringUtil::equalsIgnoreCase(token[0], "localhost"))
+            {
+                return listen("127.0.0.1", token[1]);
+            }
+            return listen(token[0], token[1]);
+        }
+        // is port
+        return listen("0.0.0.0", address);    
     }
 
     Server& listen(unsigned short port)
