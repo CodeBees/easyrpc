@@ -80,6 +80,11 @@ public:
         Router::instance().bind(funcName, func, self); 
     }
 
+    void unbind(const std::string& funcName)
+    {
+        Router::instance().unbind(funcName);
+    }
+
 private:
     void listen()
     {

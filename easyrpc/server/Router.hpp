@@ -95,6 +95,11 @@ public:
         bindMemberFunc(protocol, func, self); 
     }
 
+    void unbind(const std::string& funcName)
+    {
+        m_invokerMap.erase(funcName);
+    }
+
     template<typename T>
     void route(const std::string& protocol, const std::string& body, T conn)
     {
