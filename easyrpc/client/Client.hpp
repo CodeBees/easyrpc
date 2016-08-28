@@ -114,28 +114,21 @@ private:
 
     void callImpl(const std::string& protocol, const std::string& body)
     {
-        if (!write(protocol, body))
-        {
-            throw std::runtime_error("Write failed");
-        }
-
-        if (!read())
-        {
-            throw std::runtime_error("Read failed");
-        }
+        write(protocol, body);
+        read();
     }
 
-    bool write(const std::string& protocol, const std::string& body)
+    void write(const std::string& protocol, const std::string& body)
     {
         unsigned int protocolLen = static_cast<unsigned int>(protocol.size());
         unsigned int bodyLen = static_cast<unsigned int>(body.size());
         if (protocolLen + bodyLen > MaxBufferLenght)
         {
-            return false;
+            throw std::runtime_error("Send data too large");
         }
 
         auto buffer = getBuffer(RequestHeader{ protocolLen, bodyLen }, protocol, body);
-        return writeImpl(buffer);
+        writeImpl(buffer);
     }
 
     std::vector<boost::asio::const_buffer> getBuffer(const RequestHeader& head, 
@@ -149,54 +142,54 @@ private:
         return buffer;
     }
 
-    bool writeImpl(const std::vector<boost::asio::const_buffer>& buffer)
+    void writeImpl(const std::vector<boost::asio::const_buffer>& buffer)
     {
         boost::system::error_code ec;
         boost::asio::write(m_socket, buffer, ec);
-        return ec ? false : true;
+        if (ec)
+        {
+            throw std::runtime_error(ec.message());
+        }
     }
 
-    bool read()
+    void read()
     {
         startTimer();
         auto guard = makeGuard([this]{ stopTimer(); });
-        if (!readHead())
-        {
-            return false;
-        }
-
-        if (!checkHead())
-        {
-            return false;
-        }
-
-        return readBody();
+        readHead();
+        checkHead();
+        readBody();
     }
 
-    bool readHead()
+    void readHead()
     {
         boost::system::error_code ec;
         boost::asio::read(m_socket, boost::asio::buffer(m_head), ec);
-        return ec ? false : true;
+        if (ec)
+        {
+            throw std::runtime_error(ec.message());
+        }
     }
 
-    bool checkHead()
+    void checkHead()
     {
         memcpy(&m_resHead, m_head, sizeof(m_head));
         if (m_resHead.bodyLen <= 0 || m_resHead.bodyLen > MaxBufferLenght)
         {
-            return false;
+            throw std::runtime_error("Invaild bodylen");
         }
-        return true;
     }
 
-    bool readBody()
+    void readBody()
     {
         m_body.clear();
         m_body.resize(m_resHead.bodyLen);
         boost::system::error_code ec;
         boost::asio::read(m_socket, boost::asio::buffer(m_body), ec); 
-        return ec ? false : true;
+        if (ec)
+        {
+            throw std::runtime_error(ec.message());
+        }
     }
 
     void startTimer()
