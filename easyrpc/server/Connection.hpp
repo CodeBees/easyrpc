@@ -35,16 +35,16 @@ public:
         return m_socket;
     }
 
-    bool write(const std::string& body)
+    void write(const std::string& body)
     {
         unsigned int bodyLen = static_cast<unsigned int>(body.size());
         if (bodyLen > MaxBufferLenght)
         {
-            return false;
+            throw std::runtime_error("Send data too large");
         }
 
         auto buffer = getBuffer(ResponseHeader{ bodyLen }, body);
-        return writeImpl(buffer);
+        writeImpl(buffer);
     }
 
     void disconnect()
@@ -176,11 +176,14 @@ private:
         return buffer;
     }
 
-    bool writeImpl(const std::vector<boost::asio::const_buffer>& buffer)
+    void writeImpl(const std::vector<boost::asio::const_buffer>& buffer)
     {
         boost::system::error_code ec;
         boost::asio::write(m_socket, buffer, ec);
-        return ec ? false : true;
+        if (ec)
+        {
+            throw std::runtime_error(ec.message());
+        }
     }
 
 private:
