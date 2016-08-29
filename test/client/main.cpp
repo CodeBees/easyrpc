@@ -34,7 +34,7 @@ int main()
     }
     catch (std::exception& e)
     {
-        std::cout << "Rpc exception: " << e.what() << std::endl;
+        logWarn(e.what());
         return 1;
     }
 

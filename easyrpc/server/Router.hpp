@@ -8,6 +8,7 @@
 #include <type_traits>
 #include "base/FunctionTraits.hpp"
 #include "base/ThreadPool.hpp"
+#include "base/Logger.hpp"
 #include "TokenParser.hpp"
 
 namespace easyrpc
@@ -35,7 +36,7 @@ public:
         }
         catch (std::exception& e)
         {
-            std::cout << "Exception: " << e.what() << std::endl;
+            logWarn(e.what());
             conn->disconnect();
         }
     }

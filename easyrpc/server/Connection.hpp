@@ -1,7 +1,6 @@
 #ifndef _CONNECTION_H
 #define _CONNECTION_H
 
-#include <iostream>
 #include <vector>
 #include <memory>
 #include <boost/asio.hpp>
@@ -9,6 +8,7 @@
 #include "base/Header.hpp"
 #include "base/ATimer.hpp"
 #include "base/ScopeGuard.hpp"
+#include "base/Logger.hpp"
 #include "Router.hpp"
 
 namespace easyrpc
@@ -68,12 +68,13 @@ private:
             auto guard = makeGuard([this, self]{ stopTimer(); disconnect(); });
             if (!m_socket.is_open())
             {
+                logWarn("Socket is not open");
                 return;
             }
 
             if (ec)
             {
-                std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
+                logWarn(ec.message());
                 return;
             }
 
@@ -100,12 +101,13 @@ private:
             auto guard = makeGuard([this, self]{ stopTimer(); disconnect(); });
             if (!m_socket.is_open())
             {
+                logWarn("Socket is not open");
                 return;
             }
 
             if (ec)
             {
-                std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
+                logWarn(ec.message());
                 return;
             }
 
@@ -125,12 +127,13 @@ private:
             stopTimer();
             if (!m_socket.is_open())
             {
+                logWarn("Socket is not open");
                 return;
             }
 
             if (ec)
             {
-                std::cout << "Error: " << ec.message()  << ", line: " << __LINE__ << std::endl;
+                logWarn(ec.message());
                 disconnect();
                 return;
             }

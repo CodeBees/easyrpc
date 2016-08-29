@@ -89,6 +89,8 @@ flags = [
 '/usr/local/3rdParty/boost/include',
 '-isystem',
 './easypack',
+'-isystem',
+'./spdlog/include',
 
 # project include path
 '-isystem',
