@@ -9,6 +9,7 @@ A RPC framework written in Modern C++
 
     ```cpp
     #include "easyrpc/EasyRpc.hpp"
+    
     int main()
     {
         easyrpc::Server app;
@@ -18,6 +19,7 @@ A RPC framework written in Modern C++
     	});
     	
         app.listen(50051).run();
+        
         std::cin.get();
         return 0;
     }
