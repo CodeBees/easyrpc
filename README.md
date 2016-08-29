@@ -36,7 +36,7 @@ A RPC framework written in Modern C++
     	app.bind("echo", &echo);
     	app.bind("add", &Utils::add, &u);
     	
-        app.listen(50051).run();
+        app.listen(50051).timeout(3000).multithreaded(10).run();
         
         std::cin.get();
         return 0;
@@ -55,7 +55,7 @@ A RPC framework written in Modern C++
     int main()
     {
         easyrpc::Client app;
-        app.connect("localhost:50051").run();
+        app.connect("localhost:50051").timeout(5000).run();
     	app.call(sayHello);
     	auto str = app.call(echo, "Hello world");
     	auto ret = app.call(add, 1, 2);
