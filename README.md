@@ -49,7 +49,7 @@ A RPC framework written in Modern C++
     #include "easyrpc/EasyRpc.hpp"
     
     EASYRPC_RPC_PROTOCOL_DEFINE(sayHello, void());
-    EASYRPC_RPC_PROTOCOL_DEFINE(echo, std::string(const std::string&))
+    EASYRPC_RPC_PROTOCOL_DEFINE(echo, std::string(const std::string&));
     EASYRPC_RPC_PROTOCOL_DEFINE(add, int(int, int));
     
     int main()
