@@ -127,7 +127,7 @@ private:
             throw std::runtime_error("Send data too large");
         }
 
-        auto buffer = getBuffer(RequestHeader{ protocolLen, bodyLen }, protocol, body);
+        const auto& buffer = getBuffer(RequestHeader{ protocolLen, bodyLen }, protocol, body);
         writeImpl(buffer);
     }
 

@@ -43,7 +43,7 @@ public:
             throw std::runtime_error("Send data too large");
         }
 
-        auto buffer = getBuffer(ResponseHeader{ bodyLen }, body);
+        const auto& buffer = getBuffer(ResponseHeader{ bodyLen }, body);
         writeImpl(buffer);
     }
 
