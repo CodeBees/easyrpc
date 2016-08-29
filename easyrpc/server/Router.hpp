@@ -95,6 +95,16 @@ public:
         m_invokerMap.erase(funcName);
     }
 
+    bool isBind(const std::string& funcName)
+    {
+        auto iter = m_invokerMap.find(funcName);
+        if (iter != m_invokerMap.end())
+        {
+            return true;
+        }
+        return false;
+    }
+
     template<typename T>
     void route(const std::string& protocol, const std::string& body, T conn)
     {

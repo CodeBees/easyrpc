@@ -91,6 +91,8 @@ flags = [
 './easypack',
 '-isystem',
 './spdlog/include',
+'-isystem',
+'./test/googletest/googletest/include',
 
 # project include path
 '-isystem',

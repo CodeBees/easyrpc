@@ -100,6 +100,11 @@ public:
         Router::instance().unbind(funcName);
     }
 
+    bool isBind(const std::string& funcName)
+    {
+        return Router::instance().isBind(funcName);
+    }
+
 private:
     void listen()
     {

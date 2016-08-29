@@ -1,5 +1,6 @@
 #include <iostream>
 #include <thread>
+#include "gtest/gtest.h"
 #include "easyrpc/EasyRpc.hpp"
 #include "ProtocolDefine.hpp"
 
@@ -7,7 +8,7 @@ EASYRPC_RPC_PROTOCOL_DEFINE(sayHello, void());
 EASYRPC_RPC_PROTOCOL_DEFINE(echo, std::string(const std::string&));
 EASYRPC_RPC_PROTOCOL_DEFINE(queryPersonInfo, std::vector<PersonInfoRes>(const PersonInfoReq&));
 
-int main()
+TEST(EasyRpcTest, ClientCase)
 {
     easyrpc::Client app;
 
@@ -16,30 +17,31 @@ int main()
         app.connect("localhost:50051").run();
 
         app.call(sayHello);
-        std::cout << app.call(echo, "Hello world") << std::endl;
+        std::string ret = app.call(echo, "Hello world");
+        EXPECT_STREQ("Hello world", ret.c_str());
 
-#if 0
         PersonInfoReq req { 12345678, "Jack" };
         auto vec = app.call(queryPersonInfo, req);
+        EXPECT_EQ(2, static_cast<int>(vec.size()));
         for (auto& res : vec)
         {
-            std::cout << "error: " << res.error << std::endl;
-            std::cout << "cardId: " << res.cardId << std::endl;
-            std::cout << "name: " << res.name << std::endl;
-            std::cout << "age: " << res.age << std::endl;
-            std::cout << "national: " << res.national << std::endl;
+            EXPECT_EQ(0, res.error);
+            EXPECT_EQ(req.cardId, res.cardId);
+            EXPECT_STREQ(req.name.c_str(), res.name.c_str());
+            EXPECT_EQ(20, res.age);
+            EXPECT_STREQ("han", res.national.c_str());
         }
-#endif
-
     }
     catch (std::exception& e)
     {
         logWarn(e.what());
-        return 1;
+        FAIL();
     }
+}
 
-    std::cin.get();
-
-    return 0;
+int main(int argc, char* argv[])
+{
+    testing::InitGoogleTest(&argc, argv); 
+    return RUN_ALL_TESTS();
 }
 
