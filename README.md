@@ -100,4 +100,4 @@ This software is licensed under the [MIT license][5]. © 2016 chxuan
   [2]: http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
   [3]: https://github.com/chxuan/easypack
   [4]: https://github.com/gabime/spdlog
-  [5]: https://github.com/chxuan/smartdb/blob/master/LICENSE
+  [5]: https://github.com/chxuan/easyrpc/blob/master/LICENSE
