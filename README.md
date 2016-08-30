@@ -43,6 +43,8 @@ A RPC framework written in Modern C++
     }
     ```
     
+    服务器调用bind函数绑定handler，支持成员函数、非成员函数以及lambda表达式的绑定，设置3000ms读socket超时，启用10个Worker线程处理业务，内部IO线程使用`an io_service-per-CPU`（一个ioservice对应一个线程）模式，最大限度提升IO性能。
+    
 * **客户端代码**
     ```cpp
     // client.cpp
@@ -64,7 +66,7 @@ A RPC framework written in Modern C++
     }
     ```
     
-以上是最简洁的客户端、服务器通信的代码，正如你所看到的，客户端像调用本地函数一样就能够完成与服务端的通信，一切都那么简洁方便，服务端bind的函数支持成员函数、非成员函数以及lambda表达式，easyrpc使用boost.asio来作为网络底层，效率自然高效，boost.serialization作为序列化框架，可以用类对象、STL作为函数参数。
+正如你所看到的，客户端像调用本地函数一样就能够完成与服务端的通信，一切都那么简洁方便，easyrpc目前只支持短连接调用，短连接的好处就是不用担心各个server的启动顺序、调用方便以及不用维护心跳，由于每次call都会去connect，所以没有长连接高效，后期可能会考虑增加长连接call，easyrpc使用boost.asio来作为网络底层，效率自然高效，boost.serialization作为序列化框架，可以用类对象、STL（vector、map等）作为函数参数。
 
 ## 依赖性
 
@@ -72,6 +74,13 @@ A RPC framework written in Modern C++
 * [spdlog][4]
 * boost
 * c++14
+
+## TODO
+
+* 增加长连接调用。
+* 增加发布/订阅模式。
+* 可能会增加其他序列化框架和协议（json、msgpack等）。
+* 服务注册、发现。
 
 
 ## License
